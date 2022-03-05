@@ -35,7 +35,7 @@
       mode: 0755
       owner: root
       group: root
-
+    when: ansible_distribution == "Windows"
 
 - hosts: web_servers
   become: true
@@ -58,6 +58,32 @@
       - php
       state: latest
     when: ansible_distribution == "AlmaLinux"
+
+  
+  - name: start httpd service (AlmaLinux)
+    tags: httpd,apache,almalinux
+    service:
+      name: httpd
+      state: started
+      enabled: yes
+    when: ansible_distribution == "AlmaLinux"
+
+  - name: change e-mail address for admin (AlmaLinux)
+    tags: apache,apache2,httpd,almalinux
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: '^ServerAdmin'
+      line: ServerAdmin reenat_2.0@mail.ru
+    when: ansible_distribution == "AlmaLinux"
+    register: httpd_play
+
+  
+  - name: restart httpd (AlmaLinux)
+    tags: apache,apache2,httpd,almalinux
+    service:
+      name: httpd
+      state: restarted
+    when: httpd_play.changed
 
 
   - name: copy default html page
