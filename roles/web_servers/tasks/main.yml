@@ -1,45 +1,27 @@
-- name: install apache and php packages (Ubuntu)
+- name: install apache and php packages
   tags: apache,apache2,ubuntu
-  apt:
+  package:
     name:
-    - apache2
-    - libapache2-mod-php
+    - "{{ apache_package_name }}"
+    - "{{ php_package_name }}"
     state: latest
-  when: ansible_distribution == "Ubuntu"
 
-- name: install apache and php packages (AlmaLinux)
-  tags: apache,apache2,almalinux
-  dnf:
-    name:
-    - httpd
-    - php
-    state: latest
-  when: ansible_distribution == "AlmaLinux"
-  
-- name: start httpd service (AlmaLinux)
+- name: start httpd service
   tags: httpd,apache,almalinux
   service:
-    name: httpd
+    name: "{{ apache_service }}"
     state: started
     enabled: yes
-  when: ansible_distribution == "AlmaLinux"
 
 - name: change e-mail address for admin (AlmaLinux)
   tags: apache,apache2,httpd,almalinux
   lineinfile:
     path: /etc/httpd/conf/httpd.conf
     regexp: '^ServerAdmin'
-    line: ServerAdmin reenat_2.0@mail.ru
+    line: ServerAdmin reenat_@mail.ru
   when: ansible_distribution == "AlmaLinux"
-  register: httpd_play
+  notify: restart_apache
   
-- name: restart httpd (AlmaLinux)
-  tags: apache,apache2,httpd,almalinux
-  service:
-    name: httpd
-    state: restarted
-  when: httpd_play.changed
-
 - name: copy default html page
   tags: apache,apache2,httpd
   copy:
